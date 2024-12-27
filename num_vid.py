@@ -34,7 +34,7 @@ def count_fingers(landmarks):
 # Start video capture
 cap = cv2.VideoCapture(0)
 
-with mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.5) as hands:
+with mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.5, max_num_hands=2) as hands:
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
@@ -47,6 +47,8 @@ with mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.5) a
         # Process the frame with MediaPipe
         result = hands.process(rgb_frame)
 
+        finger_counts = []
+
         if result.multi_hand_landmarks:
             for hand_landmarks in result.multi_hand_landmarks:
                 # Draw hand landmarks
@@ -57,10 +59,14 @@ with mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.5) a
 
                 # Count fingers
                 finger_count = count_fingers(landmarks)
+                finger_counts.append(finger_count)
 
-                # Display finger count on the screen
-                cv2.putText(frame, f'Fingers: {finger_count}', (10, 70),
-                            cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3)
+            # Display finger count for both hands
+            left_hand_fingers = finger_counts[0] if len(finger_counts) > 0 else 0
+            right_hand_fingers = finger_counts[1] if len(finger_counts) > 1 else 0
+
+            cv2.putText(frame, f'Left: {left_hand_fingers}, Right: {right_hand_fingers}', (10, 70),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
         # Show the frame
         cv2.imshow("Finger Counting", frame)
